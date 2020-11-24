@@ -12,26 +12,26 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 public class sender {
-    public static void main(String[] args){
+    public static void main(String[] args) {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUsername("root");
         factory.setPassword("password");
         factory.setVirtualHost("/");
         factory.setHost("localhost");
         factory.setPort(5672);
-        List<NewSmsDto> newSmsDtoList = (new DbManager()).getNewSmses();
-        Iterator var2 = newSmsDtoList.iterator();
-
-        while(var2.hasNext()) {
-            NewSmsDto sms = (NewSmsDto)var2.next();
-
-
-
-        try (Connection connection = factory.newConnection()){
+        List<NewSmsDto> newSmsDtoList = new DbManager().getNewSmses();
+        try (Connection connection = factory.newConnection()) {
             Channel channel = connection.createChannel();
-            channel.queueDeclare("testing",false,false,false,null);
-            String message = "welcome home";
-            channel.basicPublish("", "testing",false,null,sms.getText().getBytes());
+            channel.queueDeclare("test", false, false, false, null);
+            System.out.println("Queue size = " + newSmsDtoList.size());
+            newSmsDtoList.parallelStream().forEach(x -> {
+                try {
+                    channel.basicPublish("", "test", false, null, x.toString().getBytes());
+                    System.out.println(x.toString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
             System.out.println("done");
 
 
@@ -39,5 +39,6 @@ public class sender {
             e.printStackTrace();
         }
 
+
     }
-}}
+}

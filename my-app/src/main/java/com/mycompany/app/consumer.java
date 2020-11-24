@@ -5,6 +5,7 @@ import com.mycompany.app.utils.AfricaTalkingUtil;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.DeliverCallback;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -21,29 +22,30 @@ public class consumer {
         factory.setHost("localhost");
         factory.setPort(5672);
 
-            Connection connection = factory.newConnection();
-            Channel channel = connection.createChannel();
-            channel.queueDeclare("testing",false,false,false,null);
-            channel.basicConsume("testing",true,(consumerTag,message)->{String M = new  String((message.getBody() ), "UTF-8");
-                List<NewSmsDto> newSmsDtoList = (new DbManager()).getNewSmses();
-                Iterator var2 = newSmsDtoList.iterator();
+        Connection connection = factory.newConnection();
+        Channel channel = connection.createChannel();
+        channel.exchangeDeclare("logs", "fanout");
+        channel.queueDeclare("test", false, false, false, null);
+        channel.queueBind("test", "", "");
 
-                while(var2.hasNext()) {
-                    NewSmsDto sms = (NewSmsDto)var2.next();
-                    AfricaTalkingUtil.getInstance().sendSMS(sms.getPhone(), M);
-                    new DbManager();}
-
-            System.out.println("i JUST RECEIVED A MESSAGE=" +M);
-    },consumerTag ->{}
-        );
-            String message = "welcome home";
-            channel.basicPublish("", "testing",false,null,message.getBytes());
-            System.out.println("done");
-
-
-
-        }
-
+        DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+            String m[] = new String(delivery.getBody(), "UTF-8").split("#");
+            System.out.println("Phone " + m[0] + ", Text " + m[1]);
+            AfricaTalkingUtil.getInstance().sendSMS(m[0], m[1]);
+        };
+        channel.basicConsume("test", true, deliverCallback, consumerTag -> { });
     }
+    private static void doWork(String task) {
+        for (char ch : task.toCharArray()) {
+            if (ch == '.') {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException _ignored) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+    }
+}
 
 
