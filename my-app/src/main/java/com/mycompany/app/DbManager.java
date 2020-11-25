@@ -6,13 +6,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
 
 import com.mycompany.app.dto.NewSmsDto;
 
 public class DbManager {
     public DbManager() {
     }
+
 
     private Connection getConnection() throws SQLException {
         EnvSettings settings = EnvSettings.getInstance();
@@ -22,7 +22,7 @@ public class DbManager {
         return DriverManager.getConnection(jdbcUrl, settings.getDbUsername(), settings.getDbPassword());
     }
 
-    public List<NewSmsDto> getNewSmses() {
+    public ArrayList getNewSmses() {
         ArrayList newSmsDtoList = new ArrayList();
         try (Connection connection = this.getConnection()) {
             String sql = "SELECT o.contect, p.phone_number FROM Sms o, Clients p  WHERE p.category = o.category  AND o.status =?";
