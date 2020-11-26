@@ -86,8 +86,17 @@ public class producer
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {
             channel.queueDeclare("test1", false, false, false, null);
-            channel.basicPublish("", "test1", null, message.getBytes(StandardCharsets.UTF_8));
-            System.out.println(" [x] Sent '" + message + "'");
+
+            int i=1;
+            while(i<10000)
+            {
+                channel.basicPublish("", "test1", null, message.getBytes(StandardCharsets.UTF_8));
+                System.out.println(" [x] Sent '" + message + "'");
+                System.out.println(i);
+                i++;
+            }
+//            channel.basicPublish("", "test1", null, message.getBytes(StandardCharsets.UTF_8));
+//            System.out.println(" [x] Sent '" + message + "'");
         } catch (TimeoutException e) {
             e.printStackTrace();
         } catch (IOException e) {
